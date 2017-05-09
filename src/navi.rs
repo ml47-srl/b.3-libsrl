@@ -1,5 +1,5 @@
 use cell::{Cell, CellType};
-use error::*;
+use error::SRLResult;
 use misc::*;
 use gen::*;
 

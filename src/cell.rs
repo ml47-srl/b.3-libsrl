@@ -1,5 +1,5 @@
 use std::fmt;
-use error::*;
+use error::SRLResult;
 use parse::SIMPLE_CELL_FILL_CHARS;
 use parse::SIMPLE_CELL_CHARS;
 use misc::*;

@@ -1,4 +1,4 @@
-use error::*;
+use error::SRLResult;
 use navi::CellPath;
 use cell::Cell;
 use gen::*;

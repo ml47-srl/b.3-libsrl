@@ -1,5 +1,5 @@
 use cell::Cell;
-use error::*;
+use error::SRLResult;
 use cell::SimpleString;
 
 pub fn true_cell() -> Cell {

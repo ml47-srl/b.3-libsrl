@@ -67,13 +67,13 @@ impl Debug for SRLError {
 
 #[macro_export]
 macro_rules! ok {
-	($thing:expr) => { SRLResult::Ok($thing) }
+	($thing:expr) => { ::error::SRLResult::Ok($thing) }
 }
 
 #[macro_export]
 macro_rules! err {
-	() =>				{ SRLResult::Err(SRLError::new(file!(), line!(), String::new())) };
-	($msg:expr $(, $more:expr)*) =>	{ SRLResult::Err(SRLError::new(file!(), line!(), format!($msg, $($more),*))) }
+	() =>				{ ::error::SRLResult::Err(::error::SRLError::new(file!(), line!(), String::new())) };
+	($msg:expr $(, $more:expr)*) =>	{ ::error::SRLResult::Err(::error::SRLError::new(file!(), line!(), format!($msg, $($more),*))) }
 }
 
 // extract
@@ -82,10 +82,10 @@ macro_rules! x {
 	($a:expr) => { x!($a, "") };
 	($a:expr $(, $msg:expr)+) => {
 		match $a {
-			SRLResult::Ok(x) => { x }
-			SRLResult::Err(mut x) => {
-				x.add_outer(SRLError::new(file!(), line!(), format!($($msg),*)));
-				return SRLResult::Err(x);
+			::error::SRLResult::Ok(x) => { x }
+			::error::SRLResult::Err(mut x) => {
+				x.add_outer(::error::SRLError::new(file!(), line!(), format!($($msg),*)));
+				return ::error::SRLResult::Err(x);
 			}
 		}
 	}

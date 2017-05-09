@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::Read;
 use misc::*;
 use gen::*;
-use error::*;
+use error::SRLResult;
 
 #[derive(Clone)]
 pub struct Database {

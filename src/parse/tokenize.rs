@@ -1,4 +1,4 @@
-use error::*;
+use error::SRLResult;
 use super::*;
 
 // splits string into tokens, fix_whitespaces has to be called prior. Defined behaviour only for chars in VALID_CHARS without \n \t and .

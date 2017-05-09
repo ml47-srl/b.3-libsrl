@@ -1,6 +1,6 @@
 use parse::*;
 use cell::Cell;
-use error::*;
+use error::SRLResult;
 use misc::*;
 use gen::*;
 

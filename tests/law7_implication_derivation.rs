@@ -10,7 +10,7 @@
 */
 
 extern crate libsrl;
-use libsrl::error::*;
+use libsrl::error::SRLResult;
 use libsrl::db::Database;
 use libsrl::navi::CellID;
 use libsrl::gen::*;

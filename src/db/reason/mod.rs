@@ -2,7 +2,7 @@ mod wrapper;
 
 use super::Database;
 use cell::Cell;
-use error::*;
+use error::SRLResult;
 use gen::*;
 use navi::CellID;
 use navi::CellPath;

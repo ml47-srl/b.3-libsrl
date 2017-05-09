@@ -2,7 +2,7 @@ extern crate libsrl;
 use libsrl::db::Database;
 use libsrl::navi::CellID;
 use libsrl::gen::*;
-use libsrl::error::*;
+use libsrl::error::SRLResult;
 
 #[test]
 fn test_equals_law_1() {

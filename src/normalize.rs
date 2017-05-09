@@ -1,4 +1,4 @@
-use error::*;
+use error::SRLResult;
 use cell::Cell;
 use gen::*;
 

@@ -1,5 +1,5 @@
 use cell::Cell;
-use error::*;
+use error::SRLResult;
 use gen::*;
 
 pub fn contains_only(string : String, list : String) -> bool {
