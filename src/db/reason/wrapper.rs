@@ -114,8 +114,8 @@ impl Wrapper {
 #[test]
 fn test_get_wrapper() { // XXX pretty bad test
 	let path = match CellPath::create(equals_cell(false_cell(), equals_cell(true_cell(), simple_by_str("x"))), vec![2]) {
-		Ok(x) => x,
-		Err(_) => panic!("panic! :/")
+		SRLResult::Ok(x) => x,
+		SRLResult::Err(_) => panic!("panic! :/")
 	};
 
 	if let None = path.get_wrapper() {
