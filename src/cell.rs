@@ -1,5 +1,5 @@
 use std::fmt;
-use error::SRLError;
+use error::*;
 use parse::SIMPLE_CELL_FILL_CHARS;
 use parse::SIMPLE_CELL_CHARS;
 use misc::*;
@@ -20,20 +20,20 @@ pub enum Cell {
 pub enum CellType { Simple, Complex, Scope, Var, Case }
 
 impl SimpleString {
-	pub fn create(string : String) -> Result<SimpleString, SRLError> {
+	pub fn create(string : String) -> SRLResult<SimpleString> {
 		if string.len() == 0 {
-			return Err(SRLError("SimpleString::create".to_string(), "string has length 0".to_string()));
+			return err!("SimpleString::create(): string has length 0");
 		}
 		if !contains_only(string.clone(), SIMPLE_CELL_CHARS.to_string()) {
-			return Err(SRLError("SimpleString::create".to_string(), "invalid char".to_string()));
+			return err!("SimpleString::create(): invalid char");
 		}
 		if string == "=" || contains_only(string.clone(), SIMPLE_CELL_FILL_CHARS.to_string()) {
-			return Ok(SimpleString(string));
+			return ok!(SimpleString(string));
 		}
 		if string.starts_with('\'') && string.ends_with('\'') && string.matches('\'').count() == 2 {
-			return Ok(SimpleString(string));
+			return ok!(SimpleString(string));
 		}
-		return Err(SRLError("SimpleString::create".to_string(), "weird invalid stuff".to_string()));
+		return err!("SimpleString::create(): weird invalid stuff");
 	}
 
 	pub fn get_string(&self) -> String { self.0.clone() }
@@ -52,23 +52,23 @@ impl fmt::Display for Cell {
 }
 
 impl Cell {
-	pub fn by_string(string : &str) -> Result<Cell, SRLError> {
+	pub fn by_string(string : &str) -> SRLResult<Cell> {
 		use parse::*;
 		use parse::assemble::*;
 		use parse::tokenize::*;
 
 		if string.contains('.') {
-			return Err(SRLError("Cell::by_string".to_string(), "string contains '.'".to_string()));
+			return err!("Cell::by_string(): string contains '.'");
 		}
 
 		match find_invalid_char(string) {
-			Some(_) => return Err(SRLError("Cell::by_string".to_string(), "invalid char".to_string())),
+			Some(_) => return err!("Cell::by_string(): invalid char"),
 			None => {}
 		}
 		let string : String = fix_whitespaces(string);
-		let tokens = tokenize(string)?;
+		let tokens = x!(tokenize(string));
 		if ! check_paren_correctness(tokens.clone()) {
-			return Err(SRLError("Cell::by_string".to_string(), "parens incorrect".to_string()));
+			return err!("Cell::by_string(): parens incorrect");
 		}
 		assemble(tokens)
 	}

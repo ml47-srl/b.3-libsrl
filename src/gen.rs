@@ -1,5 +1,5 @@
 use cell::Cell;
-use error::SRLError;
+use error::*;
 use cell::SimpleString;
 
 pub fn true_cell() -> Cell {
@@ -14,11 +14,11 @@ pub fn equals_cell(cell1 : Cell, cell2 : Cell) -> Cell {
 	complex(vec![simple_by_str("="), cell1, cell2])
 }
 
-pub fn try_simple(string_arg : String) -> Result<Cell, SRLError> {
-	Ok(Cell::Simple { string : SimpleString::create(string_arg)? })
+pub fn try_simple(string_arg : String) -> SRLResult<Cell> {
+	ok!(Cell::Simple { string : x!(SimpleString::create(string_arg)) })
 }
 
-pub fn try_simple_by_str(string_arg : &str) -> Result<Cell, SRLError> {
+pub fn try_simple_by_str(string_arg : &str) -> SRLResult<Cell> {
 	try_simple(string_arg.to_string())
 }
 

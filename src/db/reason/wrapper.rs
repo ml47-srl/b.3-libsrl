@@ -1,3 +1,4 @@
+use error::*;
 use navi::CellPath;
 use cell::Cell;
 use gen::*;
@@ -52,7 +53,7 @@ impl CellPath {
 				},
 				Cell::Complex {..} => { // only = 'false' is allowed here!
 					let (x, y) = match cell.get_equals_cell_arguments() {
-						Ok((x, y)) => (x, y),
+						SRLResult::Ok((x, y)) => (x, y),
 						_ => return None
 					};
 					if index == 2  && x == false_cell() {

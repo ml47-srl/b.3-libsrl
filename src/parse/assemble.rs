@@ -1,6 +1,6 @@
 use parse::*;
 use cell::Cell;
-use error::SRLError;
+use error::*;
 use misc::*;
 use gen::*;
 
@@ -46,12 +46,12 @@ fn test_trim_tokens() {
 	assert_eq!(trim_tokens(tokens), vec!["{".to_string(), "}".to_string()]);
 }
 
-fn simple_by_trimmed_tokens(tokens : Vec<String>) -> Result<Cell, SRLError> {
+fn simple_by_trimmed_tokens(tokens : Vec<String>) -> SRLResult<Cell> {
 	if tokens.len() != 1 {
-		return Err(SRLError("simple_by_trimmed_tokens".to_string(), "tokens.len() != 1".to_string()));
+		return err!("simple_by_trimmed_tokens(): tokens.len() != 1");
 	}
 
-	return Ok(try_simple(tokens[0].clone())?);
+	return ok!(x!( try_simple(tokens[0].clone()) ));
 }
 
 fn find_cell_ending(cell_start : usize, tokens : &Vec<String>) -> Option<usize> {
@@ -73,7 +73,7 @@ fn find_cell_ending(cell_start : usize, tokens : &Vec<String>) -> Option<usize> 
 	None
 }
 
-fn complex_by_trimmed_tokens(tokens : Vec<String>) -> Result<Cell, SRLError> {
+fn complex_by_trimmed_tokens(tokens : Vec<String>) -> SRLResult<Cell> {
 	let mut cells : Vec<Cell> = Vec::new();
 	let mut index = 0;
 	let len = tokens.len();
@@ -84,12 +84,12 @@ fn complex_by_trimmed_tokens(tokens : Vec<String>) -> Result<Cell, SRLError> {
 			None => break
 		};
 		let subtokens : Vec<String> = tokens[index..ending+1].to_vec();
-		let cell = assemble(subtokens)?;
+		let cell = x!(assemble(subtokens));
 		cells.push(cell);
 		index = ending + 1;
 	}
 
-	Ok(complex(cells))
+	ok!(complex(cells))
 }
 
 #[test]
@@ -101,21 +101,21 @@ fn test_complex_by_trimmed_tokens() {
 }
 
 // accepts {0 (a b)} as well as {0 a b}
-fn scope_by_trimmed_tokens(mut tokens : Vec<String>) -> Result<Cell, SRLError> {
+fn scope_by_trimmed_tokens(mut tokens : Vec<String>) -> SRLResult<Cell> {
 	// cut { and }
 	let len = tokens.len();
 
-	if len < 3 { return Err(SRLError("scope_by_trimmed_tokens".to_string(), "tokens.len() < 3".to_string())); }
-	if "}" != &tokens.remove(len-1) { return Err(SRLError("scope_by_trimmed_tokens".to_string(), "\"}\" != &tokens.remove(len-1)".to_string())); }
-	if "{" != &tokens.remove(0) { return Err(SRLError("scope_by_trimmed_tokens".to_string(), "\"{\" != &tokens.remove(0)".to_string())); }
+	if len < 3 { return err!("scope_by_trimmed_tokens(): tokens.len() < 3"); }
+	if "}" != &tokens.remove(len-1) { return err!("scope_by_trimmed_tokens(): \"{}\" != &tokens.remove(len-1)", '}'); }
+	if "{" != &tokens.remove(0) { return err!("scope_by_trimmed_tokens(): \"{}\" != &tokens.remove(0)", '{'); }
 
 	let id = match var_by_trimmed_tokens(vec![tokens.remove(0)]) {
-		Ok(Cell::Var { id : x }) => x,
-		Ok(_) => return Err(SRLError("scope_by_trimmed_tokens".to_string(), "this is not a var cell".to_string())),
-		Err(srl_error) => return Err(srl_error)
+		SRLResult::Ok(Cell::Var { id : x }) => x,
+		SRLResult::Ok(_) => return err!("scope_by_trimmed_tokens(): this is not a var cell"),
+		SRLResult::Err(srl_error) => return SRLResult::Err(srl_error)
 	};
-	let body = assemble(tokens)?;
-	return Ok(scope(id, body));
+	let body = x!(assemble(tokens));
+	return ok!(scope(id, body));
 }
 
 #[test]
@@ -124,43 +124,43 @@ fn test_scope_by_trimmed_tokens() {
 	assert_eq!(scope(0, complex(vec![simple_by_str("b"), simple_by_str("c")])), scope_by_trimmed_tokens(vec!["{".to_string(), "0".to_string(), "b".to_string(), "c".to_string(), "}".to_string()]).unwrap());
 
 	match scope_by_trimmed_tokens(vec!["0".to_string(), "b".to_string(), "c".to_string(), "}".to_string()]) {
-		Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (0)"),
+		SRLResult::Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (0)"),
 		_ => {}
 	}
 	match scope_by_trimmed_tokens(vec!["0".to_string(), "b".to_string(), "c".to_string()]) {
-		Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (1)"),
+		SRLResult::Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (1)"),
 		_ => {}
 	}
 	match scope_by_trimmed_tokens(vec!["{".to_string(), "}".to_string()]) {
-		Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (2)"),
+		SRLResult::Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (2)"),
 		_ => {}
 	}
 	match scope_by_trimmed_tokens(vec!["{".to_string(), "0".to_string(), "}".to_string()]) {
-		Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (3)"),
+		SRLResult::Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (3)"),
 		_ => {}
 	}
 	match scope_by_trimmed_tokens(vec!["{".to_string(), "a".to_string(), "}".to_string()]) {
-		Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (4)"),
+		SRLResult::Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (4)"),
 		_ => {}
 	}
 	match scope_by_trimmed_tokens(vec!["{".to_string(), "a".to_string(), "b".to_string(), "}".to_string()]) {
-		Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (5)"),
+		SRLResult::Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (5)"),
 		_ => {}
 	}
 	match scope_by_trimmed_tokens(vec!["a".to_string(), "b".to_string(), "c".to_string()]) {
-		Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (6)"),
+		SRLResult::Ok(_) => panic!("test_scope_by_trimmed_tokens should fail here (6)"),
 		_ => {}
 	}
 }
 
-fn var_by_trimmed_tokens(tokens : Vec<String>) -> Result<Cell, SRLError> {
+fn var_by_trimmed_tokens(tokens : Vec<String>) -> SRLResult<Cell> {
 	if tokens.len() != 1 {
-		return Err(SRLError("var_by_trimmed_tokens".to_string(), "tokens.len() != 1".to_string()));
+		return err!("var_by_trimmed_tokens(): tokens.len() != 1");
 	}
 
 	match tokens[0].parse::<u32>() {
-		Ok(x) => return Ok(var(x)),
-		Err(_) => return Err(SRLError("var_by_trimmed_tokens".to_string(), format!("failed parsing of '{}'", tokens[0])))
+		Ok(x) => return ok!(var(x)),
+		Err(_) => return err!("var_by_trimmed_tokens(): failed parsing of '{}'", tokens[0])
 	};
 }
 
@@ -168,24 +168,24 @@ fn var_by_trimmed_tokens(tokens : Vec<String>) -> Result<Cell, SRLError> {
 fn test_var_by_trimmed_tokens() {
 	assert_eq!(var(0), var_by_trimmed_tokens(vec!["0".to_string()]).unwrap());
 	match var_by_trimmed_tokens(vec!["a".to_string()]) {
-		Ok(_) => panic!("should fail here (0)"),
+		SRLResult::Ok(_) => panic!("should fail here (0)"),
 		_ => {}
 	}
 	match var_by_trimmed_tokens(vec!["0".to_string(), "other".to_string()]) {
-		Ok(_) => panic!("should fail here (1)"),
+		SRLResult::Ok(_) => panic!("should fail here (1)"),
 		_ => {}
 	}
 }
 
 // consumes *all* tokens to create one Cell
 // -- used to parse rules, does not accept cases
-pub fn assemble(mut tokens : Vec<String>) -> Result<Cell, SRLError> {
+pub fn assemble(mut tokens : Vec<String>) -> SRLResult<Cell> {
 	tokens = trim_tokens(tokens);
 
 	let len = tokens.len();
 
 	if len == 0 {
-		return Err(SRLError("assemble".to_string(), "tokens.len() == 0".to_string()));
+		return err!("assemble(): tokens.len() == 0");
 	} else if tokens.len() == 1 {
 		let token : String = tokens[0].clone();
 		if is_var_token(&token) {
@@ -193,7 +193,7 @@ pub fn assemble(mut tokens : Vec<String>) -> Result<Cell, SRLError> {
 		} else if is_simple_token(&token) {
 			return simple_by_trimmed_tokens(tokens);
 		} else {
-			return Err(SRLError("assemble".to_string(), format!("lone token '{}' is weird", token)));
+			return err!("assemble(): lone token '{}' is weird", token);
 		}
 	} else if tokens[0] == "{" && tokens[len-1] == "}" {
 		return scope_by_trimmed_tokens(tokens);
@@ -203,7 +203,7 @@ pub fn assemble(mut tokens : Vec<String>) -> Result<Cell, SRLError> {
 }
 
 // see assemble
-pub fn assemble_str(tokens : Vec<&str>) -> Result<Cell, SRLError> {
+pub fn assemble_str(tokens : Vec<&str>) -> SRLResult<Cell> {
 	let mut v : Vec<String> = Vec::new();
 	for token in tokens {
 		v.push(token.to_string());

@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::Read;
 use misc::*;
 use gen::*;
-use error::SRLError;
+use error::*;
 
 #[derive(Clone)]
 pub struct Database {
@@ -14,16 +14,16 @@ pub struct Database {
 }
 
 impl Database {
-	pub fn by_string(string : &str) -> Result<Database, SRLError> {
+	pub fn by_string(string : &str) -> SRLResult<Database> {
 		use parse::*;
 
 		let rule_strings = split_rules(string.trim().to_string());
 		let mut rules : Vec<Cell> = vec![scope(0, complex(vec![simple_by_str("="), var(0), var(0)]))];
 		for rule_string in rule_strings {
-			rules.push(Cell::by_string(&rule_string)?.get_normalized()?);
+			rules.push(x!(x!(Cell::by_string(&rule_string)).get_normalized()));
 		}
 		let len = rules.len();
-		Ok(Database { rules : rules, src_rules_count : len })
+		ok!(Database { rules : rules, src_rules_count : len })
 	}
 
 	pub fn to_string(&self) -> String {
@@ -35,14 +35,14 @@ impl Database {
 		string
 	}
 
-	pub fn by_filename(filename : &str) -> Result<Database, SRLError> {
+	pub fn by_filename(filename : &str) -> SRLResult<Database> {
 		let mut file : File = match File::open(filename) {
 			Ok(file) => file,
-			Err(_) => return Err(SRLError("Database::by_filename".to_string(), format!("Cannot open file: '{}'", filename))),
+			Err(_) => return err!("Database::by_filename(): Cannot open file: '{}'", filename),
 		};
 		let mut filecontent = String::new();
 		if let Err(_) = file.read_to_string(&mut filecontent) {
-			return Err(SRLError("Database::by_filename".to_string(), format!("failed to read from file: '{}'", filename)));
+			return err!("Database::by_filename(): failed to read from file: '{}'", filename);
 		}
 		Database::by_string(&filecontent)
 	}
@@ -62,15 +62,15 @@ impl Database {
 		self.rules[index].clone()
 	}
 
-	pub fn delete_rule(&mut self, index : usize) -> Result<(), SRLError> {
+	pub fn delete_rule(&mut self, index : usize) -> SRLResult<()> {
 		if index_in_len(index, self.src_rules_count) {
-			return Err(SRLError("Database::delete_rule".to_string(), "This rule is write protected".to_string()))
+			return err!("Database::delete_rule(): This rule is write protected")
 		}
 		if index_in_len(index, self.count_rules()) {
 			self.rules.remove(index);
-			return Ok(());
+			return ok!(());
 		}
-		return Err(SRLError("Database::delete_rule".to_string(), "out of range".to_string()))
+		return err!("Database::delete_rule(): out of range")
 	}
 
 	pub fn contains_cellname(&self, string : &str) -> bool {

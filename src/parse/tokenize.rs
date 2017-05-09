@@ -1,8 +1,8 @@
-use error::SRLError;
+use error::*;
 use super::*;
 
 // splits string into tokens, fix_whitespaces has to be called prior. Defined behaviour only for chars in VALID_CHARS without \n \t and .
-pub fn tokenize(mut string : String) -> Result<Vec<String>, SRLError> {
+pub fn tokenize(mut string : String) -> SRLResult<Vec<String>> {
 	let mut tokens : Vec<String> = Vec::new();
 
 	#[allow(non_camel_case_types)]
@@ -36,7 +36,7 @@ pub fn tokenize(mut string : String) -> Result<Vec<String>, SRLError> {
 					tmp_string.push(x);
 					state = State::VAR;
 				} else {
-					return Err(SRLError("split_tokens".to_string(), format!("forgot handling for '{}' in NONE state", x)))
+					return err!("split_tokens(): forgot handling for '{}' in NONE state", x);
 				}
 			}
 			(x, &State::VAR) => {
@@ -50,15 +50,15 @@ pub fn tokenize(mut string : String) -> Result<Vec<String>, SRLError> {
 					tmp_string = String::new();
 					state = State::NONE;
 				} else if x == '\'' {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to close var {} with constant tick ' ", tmp_string)));
+					return err!("split_tokens(): trying to close var {} with constant tick ' ", tmp_string);
 				} else if x == '=' {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to close var {} with =", tmp_string)));
+					return err!("split_tokens(): trying to close var {} with =", tmp_string);
 				} else if SIMPLE_CELL_FILL_CHARS.contains(x) {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to close var {} with {}", tmp_string, x)));
+					return err!("split_tokens(): trying to close var {} with {}", tmp_string, x);
 				} else if VAR_FILL_CHARS.contains(x) {
 					tmp_string.push(x);
 				} else {
-					return Err(SRLError("split_tokens".to_string(), format!("forgot handling for '{}' in VAR state", x)))
+					return err!("split_tokens(): forgot handling for '{}' in VAR state", x);
 				}
 			}
 			(x, &State::SIMPLE) => {
@@ -72,15 +72,15 @@ pub fn tokenize(mut string : String) -> Result<Vec<String>, SRLError> {
 					tmp_string = String::new();
 					state = State::NONE;
 				} else if x == '\'' {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to end simple cell \"{}\" with tick '", tmp_string)));
+					return err!("split_tokens(): trying to end simple cell \"{}\" with tick '", tmp_string);
 				} else if x == '=' {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to end simple cell \"{}\" with =", tmp_string)));
+					return err!("split_tokens(): trying to end simple cell \"{}\" with =", tmp_string);
 				} else if SIMPLE_CELL_FILL_CHARS.contains(x) {
 					tmp_string.push(x);
 				} else if VAR_FILL_CHARS.contains(x) {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to end simple cell \"{}\" with {}", tmp_string, x)));
+					return err!("split_tokens(): trying to end simple cell \"{}\" with {}", tmp_string, x);
 				} else {
-					return Err(SRLError("split_tokens".to_string(), format!("forgot handling for '{}' in SIMPLE state", x)))
+					return err!("split_tokens(): forgot handling for '{}' in SIMPLE state", x);
 				}
 			}
 			(x, &State::CONST) => {
@@ -99,13 +99,13 @@ pub fn tokenize(mut string : String) -> Result<Vec<String>, SRLError> {
 					tmp_string = String::new();
 					state = State::AFTER_CELL;
 				} else if x == '=' {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to end const cell \"{}\" with =", tmp_string)));
+					return err!("split_tokens(): trying to end const cell \"{}\" with =", tmp_string);
 				} else if SIMPLE_CELL_FILL_CHARS.contains(x) {
 					tmp_string.push(x);
 				} else if VAR_FILL_CHARS.contains(x) {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to end const cell \"{}\" with {}", tmp_string, x)));
+					return err!("split_tokens(): trying to end const cell \"{}\" with {}", tmp_string, x);
 				} else {
-					return Err(SRLError("split_tokens".to_string(), format!("forgot handling for '{}' in CONST state", x)));
+					return err!("split_tokens(): forgot handling for '{}' in CONST state", x);
 				}
 			},
 			(x, &State::EQ) => {
@@ -117,15 +117,15 @@ pub fn tokenize(mut string : String) -> Result<Vec<String>, SRLError> {
 					tokens.push("=".to_string());
 					state = State::NONE;
 				} else if x == '\'' {
-					return Err(SRLError("split_tokens".to_string(), "trying to put ' after '='".to_string()));
+					return err!("split_tokens(): trying to put ' after '='");
 				} else if x == '=' {
-					return Err(SRLError("split_tokens".to_string(), "trying to put '=' after '='".to_string()));
+					return err!("split_tokens(): trying to put '=' after '='");
 				} else if SIMPLE_CELL_FILL_CHARS.contains(x) {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to put '{}' after '='", x)));
+					return err!("split_tokens(): trying to put '{}' after '='", x);
 				} else if VAR_FILL_CHARS.contains(x) {
-					return Err(SRLError("split_tokens".to_string(), format!("trying to put '{}' after '='", x)));
+					return err!("split_tokens(): trying to put '{}' after '='", x);
 				} else {
-					return Err(SRLError("split_tokens".to_string(), format!("forgot handling for '{}' in EQ state", x)));
+					return err!("split_tokens(): forgot handling for '{}' in EQ state", x);
 				}
 			}
 			(x, &State::AFTER_CELL) => {
@@ -135,21 +135,21 @@ pub fn tokenize(mut string : String) -> Result<Vec<String>, SRLError> {
 				} else if x == ' ' {
 					state = State::NONE;
 				} else if x == '\'' {
-					return Err(SRLError("split_tokens".to_string(), format!("reading '{}' directly after cell end", x)));
+					return err!("split_tokens(): reading '{}' directly after cell end", x);
 				} else if x == '=' {
-					return Err(SRLError("split_tokens".to_string(), "reading '=' directly after cell end".to_string()));
+					return err!("split_tokens(): reading '=' directly after cell end");
 				} else if SIMPLE_CELL_FILL_CHARS.contains(x) {
-					return Err(SRLError("split_tokens".to_string(), format!("reading '{}' directly after cell end", x)));
+					return err!("split_tokens(): reading '{}' directly after cell end", x);
 				} else if VAR_FILL_CHARS.contains(x) {
-					return Err(SRLError("split_tokens".to_string(), format!("reading '{}' directly after cell end", x)));
+					return err!("split_tokens(): reading '{}' directly after cell end", x);
 				} else {
-					return Err(SRLError("split_tokens".to_string(), format!("forgot handling for '{}' in AFTER_CELL state", x)))
+					return err!("split_tokens(): forgot handling for '{}' in AFTER_CELL state", x);
 				}
 			}
 		}
 	}
 
-	Ok(tokens)
+	ok!(tokens)
 }
 
 #[test]

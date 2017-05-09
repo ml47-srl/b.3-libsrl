@@ -1,5 +1,5 @@
 use cell::Cell;
-use error::SRLError;
+use error::*;
 use gen::*;
 
 pub fn contains_only(string : String, list : String) -> bool {
@@ -25,17 +25,17 @@ pub fn index_in_len(index : usize, len : usize) -> bool {
 }
 
 impl Cell {
-	pub fn get_equals_cell_arguments(&self) -> Result<(Cell, Cell), SRLError> {
+	pub fn get_equals_cell_arguments(&self) -> SRLResult<(Cell, Cell)> {
 		if let &Cell::Complex { cells : ref cells_out } = self {
 			if cells_out.len() != 3 {
-				return Err(SRLError("get_equals_cell_arguments".to_string(), "complex cell does not have 3 arguments".to_string()));
+				return err!("get_equals_cell_arguments(): complex cell does not have 3 arguments");
 			}
 			if cells_out[0] != simple_by_str("=") {
-				return Err(SRLError("get_equals_cell_arguments".to_string(), "first cell is not =".to_string()));
+				return err!("get_equals_cell_arguments(): first cell is not =");
 			}
-			return Ok((cells_out[1].clone(), cells_out[2].clone()));
+			return ok!((cells_out[1].clone(), cells_out[2].clone()));
 		} else {
-			return Err(SRLError("get_equals_cell_arguments".to_string(), "cell is not complex".to_string()));
+			return err!("get_equals_cell_arguments(): cell is not complex");
 		}
 	}
 }
